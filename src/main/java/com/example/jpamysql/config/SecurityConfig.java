@@ -3,6 +3,7 @@ package com.example.jpamysql.config;
 import com.example.jpamysql.jwt.JWTFilter;
 import com.example.jpamysql.jwt.JWTUtil;
 import com.example.jpamysql.jwt.LoginFilter;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -13,6 +14,10 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+
+import java.util.Collections;
 
 
 @Configuration
@@ -79,8 +84,30 @@ public class SecurityConfig {
                 .sessionManagement((session) -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
+        http
+                .cors((corsCustomizer -> corsCustomizer.configurationSource(new CorsConfigurationSource() {
 
+                    @Override
+                    public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
 
+                        CorsConfiguration configuration = new CorsConfiguration();
+
+                        //프론트 서버에서 사용할 3000포트 허용
+                        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+                        //모든 api요청 허용
+                        configuration.setAllowedMethods(Collections.singletonList("*"));
+                        //인증 정보(쿠키 등)를 포함한 요청을 허용
+                        configuration.setAllowCredentials(true);
+                        //모든 헤더를 허용
+                        configuration.setAllowedHeaders(Collections.singletonList("*"));
+                        //프리플라이트 요청의 캐시 시간을 3600초(1시간)로 설정
+                        configuration.setMaxAge(3600L);
+                        //프리플라이트 요청의 캐시 시간을 3600초(1시간)로 설정
+                        configuration.setExposedHeaders(Collections.singletonList("Authorization"));
+
+                        return configuration;
+                    }
+                })));
 
         return http.build();
     }
